@@ -1,6 +1,7 @@
 package com.co.oscar.login.infrastructure.security;
 
 import com.co.oscar.login.application.ports.output.TokenServicePort;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,7 +40,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         token = authHeader.substring(7);
-        username = tokenServicePort.extractUsername(token);
+        try {
+            username = tokenServicePort.extractUsername(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            SecurityContextHolder.clearContext();
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (tokenServicePort.isTokenValid(token, username)) {

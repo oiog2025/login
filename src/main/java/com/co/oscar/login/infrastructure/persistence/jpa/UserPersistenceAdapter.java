@@ -2,6 +2,7 @@ package com.co.oscar.login.infrastructure.persistence.jpa;
 
 import com.co.oscar.login.application.ports.output.UserOutPort;
 import com.co.oscar.login.domain.User;
+import com.co.oscar.login.domain.exceptions.UserNotFoundException;
 import com.co.oscar.login.infrastructure.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -44,6 +45,9 @@ public class UserPersistenceAdapter implements UserOutPort {
 
     @Override
     public void deleteUser(Long id) {
+        if (!userJpaRepository.existsById(id)) {
+            throw new UserNotFoundException("El usuario con ID " + id + " no existe en el sistema.");
+        }
         userJpaRepository.deleteById(id);
     }
 }

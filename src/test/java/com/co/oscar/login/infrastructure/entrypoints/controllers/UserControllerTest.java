@@ -3,8 +3,10 @@ package com.co.oscar.login.infrastructure.entrypoints.controllers;
 import com.co.oscar.login.application.ports.input.UserInPort;
 import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.domain.User;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
 import com.co.oscar.login.infrastructure.entrypoints.dtos.UserDto;
 import com.co.oscar.login.infrastructure.mapper.UserMapper;
+import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -49,13 +51,23 @@ class UserControllerTest {
     @MockitoBean
     private TokenServicePort tokenServicePort;
 
+    @MockitoBean
+    private RefreshTokenService refreshTokenService;
+
     @Nested
     @DisplayName("Pruebas para el Endpoint POST /api/auth/create")
     class CreateUserTests {
         @Test
         @DisplayName("Debe retornar 200 OK y ApiResponseDto exitoso cuando los datos son correctos")
         void shouldCreateUserSuccessfully() throws Exception {
-            UserDto inputDto = new UserDto(null, "Oscar Ivan Ospina", "oscar@correo.com", "Admin123!", true, null, null);
+            String requestJson = """
+                    {
+                      "name": "Oscar Ivan Ospina",
+                      "email": "oscar@correo.com",
+                      "password": "Admin123!",
+                      "isActive": true
+                    }
+                    """;
             User domainUser = new User(null, "Oscar Ivan Ospina", "Admin123!", true, "oscar@correo.com", null, null);
             User savedUser = new User(1L, "Oscar Ivan Ospina", "hash_encrypted", true, "oscar@correo.com", LocalDateTime.now(), LocalDateTime.now());
             UserDto outputDto = new UserDto(1L, "Oscar Ivan Ospina", "oscar@correo.com", null, true, null, null);
@@ -66,7 +78,7 @@ class UserControllerTest {
 
             mockMvc.perform(post("/api/auth/create")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(inputDto)))
+                            .content(requestJson))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("User created successfully"))
@@ -79,12 +91,17 @@ class UserControllerTest {
     @DisplayName("Pruebas para el Endpoint POST /api/auth/login")
     class LoginTests {
         @Test
-        @DisplayName("Debe retornar 200 OK y el Token envuelto cuando las credenciales son correctas")
+        @DisplayName("Debe retornar 200 OK y ambos tokens cuando las credenciales son correctas")
         void shouldLoginSuccessfully() throws Exception {
             String requestJson = "{\"username\":\"oscar@correo.com\",\"password\":\"Admin123!\"}";
             String fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummytoken.firma";
+            String fakeRefreshToken = "refresh-token-123";
 
-            when(userInPort.login("oscar@correo.com", "Admin123!")).thenReturn(Optional.of(fakeToken));
+            when(userInPort.loginWithRefreshToken("oscar@correo.com", "Admin123!"))
+                    .thenReturn(Optional.of(LoginResponseDTO.builder()
+                            .accessToken(fakeToken)
+                            .refreshToken(fakeRefreshToken)
+                            .build()));
 
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -92,7 +109,8 @@ class UserControllerTest {
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("Login successful"))
-                    .andExpect(jsonPath("$.data.token").value(fakeToken));
+                    .andExpect(jsonPath("$.data.token").value(fakeToken))
+                    .andExpect(jsonPath("$.data.refreshToken").value(fakeRefreshToken));
         }
 
         @Test
@@ -100,7 +118,7 @@ class UserControllerTest {
         void shouldReturn401WhenCredentialsAreInvalid() throws Exception {
             String requestJson = "{\"username\":\"oscar@correo.com\",\"password\":\"ClaveEquivocada\"}";
 
-            when(userInPort.login(any(String.class), any(String.class))).thenReturn(Optional.empty());
+            when(userInPort.loginWithRefreshToken(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
             mockMvc.perform(post("/api/auth/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -184,7 +202,15 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 200 OK y ApiResponseDto exitoso al actualizar un usuario")
         void shouldUpdateUserSuccessfully() throws Exception {
-            UserDto inputDto = new UserDto(1L, "Oscar Actualizado", "oscar@correo.com", "NewPass123!", true, null, null);
+            String requestJson = """
+                    {
+                      "id": 1,
+                      "name": "Oscar Actualizado",
+                      "email": "oscar@correo.com",
+                      "password": "NewPass123!",
+                      "isActive": true
+                    }
+                    """;
             User domainUser = new User(1L, "Oscar Actualizado", "NewPass123!", true, "oscar@correo.com", null, null);
             User updatedUser = new User(1L, "Oscar Actualizado", "hashed_new_pass", true, "oscar@correo.com", LocalDateTime.now(), LocalDateTime.now());
             UserDto outputDto = new UserDto(1L, "Oscar Actualizado", "oscar@correo.com", null, true, null, null);
@@ -195,7 +221,7 @@ class UserControllerTest {
 
             mockMvc.perform(put("/api/auth/update")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(inputDto)))
+                            .content(requestJson))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.message").value("User updated successfully"))
@@ -205,15 +231,23 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 404 Not Found cuando el usuario a actualizar no existe")
         void shouldReturn404WhenUpdatingNonExistentUser() throws Exception {
-            UserDto inputDto = new UserDto(999L, "Fantasma", "fantasma@correo.com", "Pass123!", true, null, null);
-            User domainUser = new User(999L, "Fantasma", "Pass123!", true, "fantasma@correo.com", null, null);
+            String requestJson = """
+                    {
+                      "id": 999,
+                      "name": "Fantasma",
+                      "email": "fantasma@correo.com",
+                      "password": "Pass1234!",
+                      "isActive": true
+                    }
+                    """;
+            User domainUser = new User(999L, "Fantasma", "Pass1234!", true, "fantasma@correo.com", null, null);
 
             when(userMapper.toDomain(any(UserDto.class))).thenReturn(domainUser);
             when(userInPort.updateUser(any(User.class))).thenReturn(Optional.empty());
 
             mockMvc.perform(put("/api/auth/update")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(inputDto)))
+                            .content(requestJson))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("No se pudo actualizar. El usuario no existe en el sistema."));
@@ -238,6 +272,26 @@ class UserControllerTest {
         }
 
         @Test
+        @DisplayName("Debe retornar 400 Bad Request cuando falla la validación del cuerpo")
+        void shouldReturn400WhenRequestValidationFails() throws Exception {
+            String invalidJson = """
+                    {
+                      "name": "",
+                      "email": "correo-invalido",
+                      "password": "123",
+                      "isActive": true
+                    }
+                    """;
+
+            mockMvc.perform(post("/api/auth/create")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(invalidJson))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.success").value(false))
+                    .andExpect(jsonPath("$.message").isString());
+        }
+
+        @Test
         @DisplayName("Debe retornar 400 Bad Request cuando hay un Type Mismatch")
         void shouldReturn400WhenTypeMismatchOccurs() throws Exception {
             // Mandamos letras donde se espera un Long
@@ -251,19 +305,23 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 409 Conflict cuando el usuario ya existe")
         void shouldReturn409WhenUserAlreadyExists() throws Exception {
-            // GIVEN
-            UserDto inputDto = new UserDto(null, "Oscar", "oscar@correo.com", "Admin123!", true, null, null);
+            String requestJson = """
+                    {
+                      "name": "Oscar",
+                      "email": "oscar@correo.com",
+                      "password": "Admin123!",
+                      "isActive": true
+                    }
+                    """;
 
-            // 🚨 ESTO ERA LO QUE FALTABA: Configurar los mocks para simular el error
             when(userMapper.toDomain(any(UserDto.class))).thenReturn(new User(null, "Oscar", "Admin123!", true, "oscar@correo.com", null, null));
             when(userInPort.createUser(any(User.class)))
                     .thenThrow(new com.co.oscar.login.domain.exceptions.UserAlreadyExistsException("El correo ya se encuentra registrado."));
 
-            // WHEN & THEN
             mockMvc.perform(post("/api/auth/create")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(inputDto)))
-                    .andExpect(status().isConflict()) // Ahora sí esperará y recibirá el 409
+                            .content(requestJson))
+                    .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.success").value(false))
                     .andExpect(jsonPath("$.message").value("El correo ya se encuentra registrado."));
         }

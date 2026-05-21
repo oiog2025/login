@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -39,7 +40,7 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Credenciales inválidas / No autorizado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    public ResponseEntity<ApiResponseDto<TokenResponseDTO>> login(@RequestBody UserRequestDTO request) {
+    public ResponseEntity<ApiResponseDto<TokenResponseDTO>> login(@Valid @RequestBody UserRequestDTO request) {
         return userInPort.loginWithRefreshToken(request.getUsername(), request.getPassword())
                 .map(loginResponse -> {
                     TokenResponseDTO tokens = new TokenResponseDTO(
@@ -57,8 +58,7 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Sesión cerrada exitosamente",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    public ResponseEntity<ApiResponseDto<Void>> logout(@RequestBody RefreshTokenRequestDTO request) {
-        // 💡 CORRECCIÓN: Usamos el método correcto que recibe el String y maneja la transacción solo
+    public ResponseEntity<ApiResponseDto<Void>> logout(@Valid @RequestBody RefreshTokenRequestDTO request) {
         refreshTokenService.revokeToken(request.getRefreshToken());
         return ResponseEntity.ok(ApiResponseDto.success(null, "Logout successful"));
     }
@@ -70,19 +70,18 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "401", description = "Refresh token inválido, revocado o expirado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    public ResponseEntity<ApiResponseDto<TokenResponseDTO>> refreshToken(@RequestBody RefreshTokenRequestDTO request) {
+    public ResponseEntity<ApiResponseDto<TokenResponseDTO>> refreshToken(@Valid @RequestBody RefreshTokenRequestDTO request) {
         String tokenStr = request.getRefreshToken();
 
-        // 💡 CORRECCIÓN: Usamos las validaciones e interacciones semánticas de tu servicio
         if (!refreshTokenService.isTokenValid(tokenStr)) {
             throw new BadCredentialsException("Invalid or expired refresh token");
         }
 
         String username = refreshTokenService.getUsernameFromToken(tokenStr);
-        refreshTokenService.revokeToken(tokenStr); // Rotamos el token (lo revocamos)
+        refreshTokenService.revokeToken(tokenStr);
 
         String newAccessToken = tokenServicePort.generateToken(username, Map.of("user", username));
-        String newRefreshTokenStr = refreshTokenService.createRefreshToken(username); // Genera el nuevo en BD
+        String newRefreshTokenStr = refreshTokenService.createRefreshToken(username);
 
         return ResponseEntity.ok(ApiResponseDto.success(
                 new TokenResponseDTO(newAccessToken, newRefreshTokenStr),
@@ -99,7 +98,7 @@ public class UserController {
     })
     public ResponseEntity<ApiResponseDto<UserDto>> createUser(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Datos del usuario a crear")
-            @RequestBody UserDto userDTO) {
+            @Valid @RequestBody UserDto userDTO) {
         User userDomain = userMapper.toDomain(userDTO);
         Optional<User> createdUser = userInPort.createUser(userDomain);
         return createdUser
@@ -127,7 +126,7 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "404", description = "No se pudo actualizar debido a que el usuario no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    public ResponseEntity<ApiResponseDto<UserDto>> updateUser(@RequestBody UserDto userDTO) {
+    public ResponseEntity<ApiResponseDto<UserDto>> updateUser(@Valid @RequestBody UserDto userDTO) {
         User userDomain = userMapper.toDomain(userDTO);
         return userInPort.updateUser(userDomain)
                 .map(user -> ResponseEntity.ok(ApiResponseDto.success(userMapper.toDto(user), "User updated successfully")))

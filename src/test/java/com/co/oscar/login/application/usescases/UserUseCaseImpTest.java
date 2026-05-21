@@ -4,7 +4,9 @@ import com.co.oscar.login.application.ports.output.EncryptedServicePort;
 import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.application.ports.output.UserOutPort;
 import com.co.oscar.login.domain.User;
-import com.co.oscar.login.domain.exceptions.UserException;
+import com.co.oscar.login.domain.exceptions.UserAlreadyExistsException;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
+import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -35,8 +37,11 @@ class UserUseCaseImpTest {
     @Mock
     private EncryptedServicePort encryptedServicePort;
 
+    @Mock
+    private RefreshTokenService refreshTokenService;
+
     @InjectMocks
-    private UserUseCaseImp userUseCase; // Inyecta los 3 mocks de arriba automáticamente en la implementación
+    private UserUseCaseImp userUseCase;
 
     @Nested
     @DisplayName("Pruebas para el método findByEmail")
@@ -86,24 +91,22 @@ class UserUseCaseImpTest {
         }
 
         @Test
-        @DisplayName("Debe asignar el rol GUEST si las credenciales son correctas pero el usuario está INACTIVO")
-        void shouldReturnTokenWithGuestRoleWhenUserIsInactive() {
+        @DisplayName("Debe retornar Optional vacío si el usuario está inactivo")
+        void shouldReturnEmptyOptionalWhenUserIsInactive() {
             // GIVEN
             String email = "inactivo@correo.com";
             String pass = "Admin123!";
             User mockUser = new User(2L, "Inactivo", "hashed_pass", false, email, LocalDateTime.now(), LocalDateTime.now());
-            String expectedToken = "jwt.token.guest";
 
             when(userOutPort.findByUsername(email)).thenReturn(Optional.of(mockUser));
-            when(encryptedServicePort.matches(pass, "hashed_pass")).thenReturn(true);
-            when(tokenServicePort.generateToken(eq(email), any(Map.class))).thenReturn(expectedToken);
 
             // WHEN
             Optional<String> token = userUseCase.login(email, pass);
 
             // THEN
-            assertTrue(token.isPresent());
-            assertEquals(expectedToken, token.get());
+            assertTrue(token.isEmpty());
+            verify(encryptedServicePort, never()).matches(anyString(), anyString());
+            verify(tokenServicePort, never()).generateToken(anyString(), any(Map.class));
         }
 
         @Test
@@ -161,9 +164,33 @@ class UserUseCaseImpTest {
             when(userOutPort.findByUsername("oscar@correo.com")).thenReturn(Optional.of(existingUser));
 
             // WHEN & THEN
-            UserException exception = assertThrows(UserException.class, () -> userUseCase.createUser(inputUser));
+            UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> userUseCase.createUser(inputUser));
             assertEquals("El correo 'oscar@correo.com' ya se encuentra registrado.", exception.getMessage());
             verify(userOutPort, never()).createUser(any(User.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("Pruebas para el método loginWithRefreshToken")
+    class LoginWithRefreshTokenTests {
+
+        @Test
+        @DisplayName("Debe retornar access token y refresh token cuando las credenciales son correctas")
+        void shouldReturnAccessAndRefreshTokenWhenCredentialsAreCorrect() {
+            String email = "oscar@correo.com";
+            String pass = "Admin123!";
+            User mockUser = new User(1L, "Oscar", "hashed_pass", true, email, LocalDateTime.now(), LocalDateTime.now());
+
+            when(userOutPort.findByUsername(email)).thenReturn(Optional.of(mockUser));
+            when(encryptedServicePort.matches(pass, "hashed_pass")).thenReturn(true);
+            when(tokenServicePort.generateToken(eq(email), any(Map.class))).thenReturn("access-token");
+            when(refreshTokenService.createRefreshToken(email)).thenReturn("refresh-token");
+
+            Optional<LoginResponseDTO> result = userUseCase.loginWithRefreshToken(email, pass);
+
+            assertTrue(result.isPresent());
+            assertEquals("access-token", result.get().getAccessToken());
+            assertEquals("refresh-token", result.get().getRefreshToken());
         }
     }
 
@@ -193,17 +220,18 @@ class UserUseCaseImpTest {
     class UpdateUserTests {
 
         @Test
-        @DisplayName("Debe actualizar con éxito respetando propiedades inmutables (ID, username, createdAt)")
+        @DisplayName("Debe actualizar con éxito respetando propiedades inmutables y re-encriptando la contraseña")
         void shouldUpdateUserSuccessfullyWhenUserExists() {
             // GIVEN
             LocalDateTime dateOriginal = LocalDateTime.now().minusDays(1);
             LocalDateTime dateUpdate = LocalDateTime.now();
 
             User existingUser = new User(1L, "Oscar Viejo", "old_pass", true, "oscar@correo.com", dateOriginal, null);
-            User updatedInfo = new User(null, "Oscar Nuevo", "new_pass", true, "oscar@correo.com", null, dateUpdate);
-            User savedUser = new User(1L, "Oscar Nuevo", "new_pass", true, "oscar@correo.com", dateOriginal, dateUpdate);
+            User updatedInfo = new User(null, "Oscar Nuevo", "NewPass123!", true, "oscar@correo.com", null, dateUpdate);
+            User savedUser = new User(1L, "Oscar Nuevo", "hashed_new_pass", true, "oscar@correo.com", dateOriginal, dateUpdate);
 
             when(userOutPort.findByUsername("oscar@correo.com")).thenReturn(Optional.of(existingUser));
+            when(encryptedServicePort.encode("NewPass123!")).thenReturn("hashed_new_pass");
             when(userOutPort.updateUser(any(User.class))).thenReturn(Optional.of(savedUser));
 
             // WHEN
@@ -214,6 +242,7 @@ class UserUseCaseImpTest {
             assertEquals("Oscar Nuevo", result.get().name());
             assertEquals(1L, result.get().id()); // Mantiene el ID existente
             assertEquals(dateOriginal, result.get().createdAt()); // Mantiene la fecha de creación original
+            assertEquals("hashed_new_pass", result.get().password());
         }
 
         @Test

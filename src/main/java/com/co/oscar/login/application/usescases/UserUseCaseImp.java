@@ -5,7 +5,7 @@ import com.co.oscar.login.application.ports.output.EncryptedServicePort;
 import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.application.ports.output.UserOutPort;
 import com.co.oscar.login.domain.User;
-import com.co.oscar.login.domain.exceptions.UserException;
+import com.co.oscar.login.domain.exceptions.UserAlreadyExistsException;
 import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
 import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import lombok.AllArgsConstructor;
@@ -34,12 +34,13 @@ public class UserUseCaseImp implements UserInPort {
 
     public Optional<String> login(String email, String password) {
         return userOutPort.findByUsername(email)
+                .filter(User::isActive)
                 .filter(user -> encryptedServicePort.matches(password, user.password()))
                 .map(user -> {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("id", user.id());
                     claims.put("isActive", user.isActive());
-                    claims.put("role", user.isActive() ? "USER" : "GUEST");
+                    claims.put("role", "USER");
                     claims.put("user", user.username());
                     return tokenServicePort.generateToken(user.username(), claims);
                 });
@@ -48,12 +49,13 @@ public class UserUseCaseImp implements UserInPort {
     @Override
     public Optional<LoginResponseDTO> loginWithRefreshToken(String email, String password) {
         return userOutPort.findByUsername(email)
+                .filter(User::isActive)
                 .filter(user -> encryptedServicePort.matches(password, user.password()))
                 .map(user -> {
                     Map<String, Object> claims = new HashMap<>();
                     claims.put("id", user.id());
                     claims.put("isActive", user.isActive());
-                    claims.put("role", user.isActive() ? "USER" : "GUEST");
+                    claims.put("role", "USER");
                     claims.put("user", user.username());
 
                     String accessToken = tokenServicePort.generateToken(user.username(), claims);
@@ -70,7 +72,7 @@ public class UserUseCaseImp implements UserInPort {
     public Optional<User> createUser(User user) {
 
         if (userOutPort.findByUsername(user.username()).isPresent()) {
-            throw new UserException("El correo '" + user.username() + "' ya se encuentra registrado.");
+            throw new UserAlreadyExistsException("El correo '" + user.username() + "' ya se encuentra registrado.");
         }
         User userWithHashedPassword = user.encrypt(encryptedServicePort);
         return userOutPort.createUser(userWithHashedPassword);
@@ -85,17 +87,17 @@ public class UserUseCaseImp implements UserInPort {
     @Override
     public Optional<User> updateUser(User user) {
         return userOutPort.findByUsername(user.username()).flatMap(
-                existinUser -> {
-                    User newUser = new User(
-                            existinUser.id(),
+                existingUser -> {
+                    User updatedUser = new User(
+                            existingUser.id(),
                             user.name(),
                             user.password(),
                             user.isActive(),
-                            existinUser.username(),
-                            existinUser.createdAt(),
+                            existingUser.username(),
+                            existingUser.createdAt(),
                             user.updatedAt()
-                    );
-                    return userOutPort.updateUser(newUser);
+                    ).encrypt(encryptedServicePort);
+                    return userOutPort.updateUser(updatedUser);
                 });
     }
 
