@@ -1,0 +1,17 @@
+services:
+  database:
+    image: mariadb:latest
+    container_name: mariadb-server
+    restart: always
+    environment:
+      # Configuramos la clave y creamos la base de datos automáticamente
+      MARIADB_ROOT_PASSWORD: "123456"
+      MARIADB_DATABASE: "colombia_db"
+    ports:
+      - "3306:3306"
+    volumes:
+      # Esto hace que tus datos no se borren al apagar el contenedor
+      - mariadb_data:/var/lib/mysql
+
+volumes:
+  mariadb_data:
