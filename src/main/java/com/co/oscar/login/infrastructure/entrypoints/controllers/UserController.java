@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -126,8 +127,8 @@ public class UserController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class))),
             @ApiResponse(responseCode = "404", description = "No se pudo actualizar debido a que el usuario no existe", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponseDto.class)))
     })
-    public ResponseEntity<ApiResponseDto<UserDto>> updateUser(@Valid @RequestBody UserDto userDTO) {
-        User userDomain = userMapper.toDomain(userDTO);
+    public ResponseEntity<ApiResponseDto<UserDto>> updateUser(@Valid @RequestBody UserUpdateDto userUpdateDTO) {
+        User userDomain = userMapper.toDomain(userUpdateDTO);
         return userInPort.updateUser(userDomain)
                 .map(user -> ResponseEntity.ok(ApiResponseDto.success(userMapper.toDto(user), "User updated successfully")))
                 .orElseThrow(() -> new UserNotFoundException("No se pudo actualizar. El usuario no existe en el sistema."));
@@ -143,4 +144,29 @@ public class UserController {
         userInPort.deleteUser(id);
         return ResponseEntity.ok(ApiResponseDto.success(null, "User deleted successfully"));
     }
+
+    @GetMapping("/users")
+    @Operation(
+            summary = "Obtener todos los usuarios",
+            description = "Retorna una lista con todos los usuarios registrados en el sistema."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Lista de usuarios obtenida exitosamente",
+                    content = @Content(
+                            mediaType = "application/json",
+                            // Nota: Al retornar una lista, envolvemos el UserDto en un array dentro del Schema
+                            schema = @Schema(implementation = ApiResponseDto.class)
+                    )
+            )
+    })
+    public ResponseEntity<ApiResponseDto<List<UserDto>>> getAllUsers() {
+        Optional<List<User>> domainUsersOptional = userInPort.getAllUser();
+        List<User> domainUsers = domainUsersOptional
+                .orElseThrow(() -> new UserNotFoundException("No hay Usuarios en el sistema."));
+        List<UserDto> userDtos = userMapper.toDtoList(domainUsers);
+        return ResponseEntity.ok(ApiResponseDto.success(userDtos, "Users retrieved successfully"));
+    }
+
 }

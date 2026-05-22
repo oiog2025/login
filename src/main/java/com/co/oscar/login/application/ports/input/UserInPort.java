@@ -3,6 +3,7 @@ package com.co.oscar.login.application.ports.input;
 import com.co.oscar.login.domain.User;
 import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -66,4 +67,6 @@ public interface UserInPort {
      * @param id id del usuario
      */
     void deleteUser(Long id);
+
+    Optional<List<User>> getAllUser();
 }

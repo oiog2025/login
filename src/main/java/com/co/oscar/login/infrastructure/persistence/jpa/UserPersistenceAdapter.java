@@ -7,6 +7,7 @@ import com.co.oscar.login.infrastructure.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,5 +50,14 @@ public class UserPersistenceAdapter implements UserOutPort {
             throw new UserNotFoundException("El usuario con ID " + id + " no existe en el sistema.");
         }
         userJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public Optional<List<User>> getAllUser() {
+        List<UserEntity> usersList = userJpaRepository.findAll();
+        if (usersList.isEmpty()) {
+            throw new UserNotFoundException("No hay Usuarios en el sistema.");
+        }
+        return Optional.of(usersList).map(userMapper::toDomainList);
     }
 }

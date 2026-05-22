@@ -11,6 +11,7 @@ import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import lombok.AllArgsConstructor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -88,15 +89,22 @@ public class UserUseCaseImp implements UserInPort {
     public Optional<User> updateUser(User user) {
         return userOutPort.findByUsername(user.username()).flatMap(
                 existingUser -> {
+
+                    boolean hasNewPassword = user.password() != null && !user.password().isBlank();
+
+                    String passwordToSave = hasNewPassword ? user.password() : existingUser.password();
                     User updatedUser = new User(
                             existingUser.id(),
                             user.name(),
-                            user.password(),
+                            passwordToSave,
                             user.isActive(),
                             existingUser.username(),
                             existingUser.createdAt(),
                             user.updatedAt()
-                    ).encrypt(encryptedServicePort);
+                    );
+                    if (hasNewPassword) {
+                        updatedUser = updatedUser.encrypt(encryptedServicePort);
+                    }
                     return userOutPort.updateUser(updatedUser);
                 });
     }
@@ -104,6 +112,11 @@ public class UserUseCaseImp implements UserInPort {
     @Override
     public void deleteUser(Long id) {
         userOutPort.deleteUser(id);
+    }
+
+    @Override
+    public Optional<List<User>> getAllUser() {
+        return userOutPort.getAllUser();
     }
 
 }

@@ -2,6 +2,7 @@ package com.co.oscar.login.application.ports.output;
 
 import com.co.oscar.login.domain.User;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -48,4 +49,6 @@ public interface UserOutPort {
      * @param id id del usuario
      */
     void deleteUser(Long id);
+
+    Optional<List<User>> getAllUser();
 }
