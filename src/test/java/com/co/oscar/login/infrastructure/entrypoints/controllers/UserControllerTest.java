@@ -93,7 +93,7 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 200 OK y ambos tokens cuando las credenciales son correctas")
         void shouldLoginSuccessfully() throws Exception {
-            String requestJson = "{\"username\":\"oscar@correo.com\",\"password\":\"Admin123!\"}";
+            String requestJson = "{\"email\":\"oscar@correo.com\",\"password\":\"Admin123!\"}";
             String fakeToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummytoken.firma";
             String fakeRefreshToken = "refresh-token-123";
 
@@ -116,7 +116,7 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 401 Unauthorized y un error cuando las credenciales fallan")
         void shouldReturn401WhenCredentialsAreInvalid() throws Exception {
-            String requestJson = "{\"username\":\"oscar@correo.com\",\"password\":\"ClaveEquivocada\"}";
+            String requestJson = "{\"email\":\"oscar@correo.com\",\"password\":\"ClaveEquivocada\"}";
 
             when(userInPort.loginWithRefreshToken(any(String.class), any(String.class))).thenReturn(Optional.empty());
 
@@ -125,7 +125,7 @@ class UserControllerTest {
                             .content(requestJson))
                     .andExpect(status().isUnauthorized())
                     .andExpect(jsonPath("$.success").value(false))
-                    .andExpect(jsonPath("$.message").value("Invalid credentials. Please check your username and password."))
+                    .andExpect(jsonPath("$.message").value("Invalid credentials. Please check your email and password."))
                     .andExpect(jsonPath("$.data").isEmpty());
         }
     }
@@ -262,7 +262,7 @@ class UserControllerTest {
         @Test
         @DisplayName("Debe retornar 400 Bad Request cuando se envía un JSON malformado")
         void shouldReturn400WhenJsonIsMalformed() throws Exception {
-            String malformedJson = "{\"username\": \"oscar@correo.com\", \"password\": \"Admin123\" "; // Falta cerrar llave
+            String malformedJson = "{\"email\": \"oscar@correo.com\", \"password\": \"Admin123\" "; // Falta cerrar llave
 
             mockMvc.perform(post("/api/auth/create")
                             .contentType(MediaType.APPLICATION_JSON)

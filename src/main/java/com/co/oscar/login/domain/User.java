@@ -8,7 +8,7 @@ import com.co.oscar.login.domain.exceptions.UserNotFoundException;
 import java.time.LocalDateTime;
 
 
-public record User(Long id, String name, String password, boolean isActive, String username, LocalDateTime createdAt,
+public record User(Long id, String name, String password, boolean isActive, String email, LocalDateTime createdAt,
                    LocalDateTime updatedAt) {
 
     private static final String SECURITY_PATTERN = "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\",./<>?]).{8,16}$";
@@ -16,7 +16,7 @@ public record User(Long id, String name, String password, boolean isActive, Stri
 
     public User {
 
-        if (username == null || username.isBlank()) {
+        if (email == null || email.isBlank()) {
             throw new UserNotFoundException(" Required field");
         }
         if (id == null && (password == null || password.isBlank())) {
@@ -41,7 +41,7 @@ public record User(Long id, String name, String password, boolean isActive, Stri
                 this.name,
                 encryptedPassword,
                 this.isActive,
-                this.username,
+                this.email,
                 this.createdAt,
                 this.updatedAt
         );

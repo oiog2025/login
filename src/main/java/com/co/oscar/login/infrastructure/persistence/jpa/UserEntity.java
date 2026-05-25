@@ -37,7 +37,7 @@ public class UserEntity {
             regexp = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
             message = "Formato de correo electrónico inválido")
     @JsonProperty(value = "email")
-    @JsonAlias("username")
+    @JsonAlias("email")
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)

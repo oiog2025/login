@@ -11,7 +11,7 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 @Data
 public class UserRequestDTO {
-    @NotBlank(message = "El username es obligatorio")
+    @NotBlank(message = "El email es obligatorio")
     private String username;
 
     @NotBlank(message = "La contraseña es obligatoria")

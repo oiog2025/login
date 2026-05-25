@@ -60,7 +60,7 @@ class UserUseCaseImpTest {
 
             // THEN
             assertTrue(result.isPresent());
-            assertEquals(email, result.get().username());
+            assertEquals(email, result.get().email());
             verify(userOutPort, times(1)).findByUsername(email);
         }
     }

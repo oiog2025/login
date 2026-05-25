@@ -20,7 +20,7 @@ public record UserUpdateDto(
 
         @NotBlank(message = "El correo electrónico es obligatorio")
         @Email(message = "Formato de correo electrónico inválido")
-        @JsonAlias("username")
+        @JsonAlias("email")
         @Schema(description = "Correo electrónico", example = "oscar@correo.com")
         String email,
 

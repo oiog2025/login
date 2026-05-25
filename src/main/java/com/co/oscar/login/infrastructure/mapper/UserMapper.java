@@ -14,22 +14,22 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    @Mapping(source = "email", target = "username")
+    @Mapping(source = "email", target = "email")
     User toDomain(UserDto dto);
 
-    @Mapping(source = "username", target = "email")
+    @Mapping(source = "email", target = "email")
     UserDto toDto(User domain);
 
-    @Mapping(source = "email", target = "username")
+    @Mapping(source = "email", target = "email")
     User toDomain(UserEntity entity);
 
-    @Mapping(source = "username", target = "email")
+    @Mapping(source = "email", target = "email")
     UserEntity toEntity(User domain);
 
     List<User> toDomainList(List<UserEntity> entities);
 
     List<UserDto> toDtoList(List<User> domainUsers);
 
-    @Mapping(source = "email", target = "username")
+    @Mapping(source = "email", target = "email")
     User toDomain(UserUpdateDto dto);
 }

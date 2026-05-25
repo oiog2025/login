@@ -42,8 +42,8 @@ public class UserUseCaseImp implements UserInPort {
                     claims.put("id", user.id());
                     claims.put("isActive", user.isActive());
                     claims.put("role", "USER");
-                    claims.put("user", user.username());
-                    return tokenServicePort.generateToken(user.username(), claims);
+                    claims.put("user", user.email());
+                    return tokenServicePort.generateToken(user.email(), claims);
                 });
     }
 
@@ -57,10 +57,10 @@ public class UserUseCaseImp implements UserInPort {
                     claims.put("id", user.id());
                     claims.put("isActive", user.isActive());
                     claims.put("role", "USER");
-                    claims.put("user", user.username());
+                    claims.put("user", user.email());
 
-                    String accessToken = tokenServicePort.generateToken(user.username(), claims);
-                    String refreshToken = refreshTokenService.createRefreshToken(user.username());
+                    String accessToken = tokenServicePort.generateToken(user.email(), claims);
+                    String refreshToken = refreshTokenService.createRefreshToken(user.email());
 
                     return LoginResponseDTO.builder()
                             .accessToken(accessToken)
@@ -72,8 +72,8 @@ public class UserUseCaseImp implements UserInPort {
     @Override
     public Optional<User> createUser(User user) {
 
-        if (userOutPort.findByUsername(user.username()).isPresent()) {
-            throw new UserAlreadyExistsException("El correo '" + user.username() + "' ya se encuentra registrado.");
+        if (userOutPort.findByUsername(user.email()).isPresent()) {
+            throw new UserAlreadyExistsException("El correo '" + user.email() + "' ya se encuentra registrado.");
         }
         User userWithHashedPassword = user.encrypt(encryptedServicePort);
         return userOutPort.createUser(userWithHashedPassword);
@@ -87,7 +87,7 @@ public class UserUseCaseImp implements UserInPort {
 
     @Override
     public Optional<User> updateUser(User user) {
-        return userOutPort.findByUsername(user.username()).flatMap(
+        return userOutPort.findByUsername(user.email()).flatMap(
                 existingUser -> {
 
                     boolean hasNewPassword = user.password() != null && !user.password().isBlank();
@@ -98,7 +98,7 @@ public class UserUseCaseImp implements UserInPort {
                             user.name(),
                             passwordToSave,
                             user.isActive(),
-                            existingUser.username(),
+                            existingUser.email(),
                             existingUser.createdAt(),
                             user.updatedAt()
                     );

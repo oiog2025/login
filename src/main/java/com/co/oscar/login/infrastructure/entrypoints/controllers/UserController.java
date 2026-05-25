@@ -50,7 +50,7 @@ public class UserController {
                     );
                     return ResponseEntity.ok(ApiResponseDto.success(tokens, "Login successful"));
                 })
-                .orElseThrow(() -> new BadCredentialsException("Invalid credentials. Please check your username and password."));
+                .orElseThrow(() -> new BadCredentialsException("Invalid credentials. Please check your email and password."));
     }
 
     @PostMapping("/logout")
