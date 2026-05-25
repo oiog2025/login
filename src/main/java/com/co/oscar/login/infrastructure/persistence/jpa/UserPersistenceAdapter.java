@@ -55,9 +55,6 @@ public class UserPersistenceAdapter implements UserOutPort {
     @Override
     public Optional<List<User>> getAllUser() {
         List<UserEntity> usersList = userJpaRepository.findAll();
-        if (usersList.isEmpty()) {
-            throw new UserNotFoundException("No hay Usuarios en el sistema.");
-        }
         return Optional.of(usersList).map(userMapper::toDomainList);
     }
 }

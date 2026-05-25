@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -163,8 +164,7 @@ public class UserController {
     })
     public ResponseEntity<ApiResponseDto<List<UserDto>>> getAllUsers() {
         Optional<List<User>> domainUsersOptional = userInPort.getAllUser();
-        List<User> domainUsers = domainUsersOptional
-                .orElseThrow(() -> new UserNotFoundException("No hay Usuarios en el sistema."));
+        List<User> domainUsers = domainUsersOptional.orElse(Collections.emptyList());
         List<UserDto> userDtos = userMapper.toDtoList(domainUsers);
         return ResponseEntity.ok(ApiResponseDto.success(userDtos, "Users retrieved successfully"));
     }

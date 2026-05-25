@@ -76,7 +76,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponseDto<Void>> handleAllUnexpectedExceptions(Exception ex) {
-        log.error("Unexpected error intercepted", ex);
+        log.error("Unexpected error intercepted: {}", ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponseDto.error("An unexpected internal error occurred. Please try again later."));
