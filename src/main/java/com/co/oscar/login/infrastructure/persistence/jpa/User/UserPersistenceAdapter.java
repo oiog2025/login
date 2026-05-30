@@ -1,14 +1,13 @@
-package com.co.oscar.login.infrastructure.persistence.jpa;
+package com.co.oscar.login.infrastructure.persistence.jpa.User;
 
 import com.co.oscar.login.application.ports.output.UserOutPort;
 import com.co.oscar.login.domain.User;
 import com.co.oscar.login.domain.exceptions.UserNotFoundException;
 import com.co.oscar.login.infrastructure.mapper.UserMapper;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 /**
  * Adaptador de persistencia para usuarios usando JPA.

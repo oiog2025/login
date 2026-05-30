@@ -1,4 +1,4 @@
-package com.co.oscar.login.infrastructure.entrypoints.dtos;
+package com.co.oscar.login.infrastructure.entrypoints.dtos.login;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,6 +11,6 @@ import jakarta.validation.constraints.NotBlank;
 @Builder
 @Data
 public class RefreshTokenRequestDTO {
-    @NotBlank(message = "El refresh token es obligatorio")
-    private String refreshToken;
+  @NotBlank(message = "El refresh token es obligatorio")
+  private String refreshToken;
 }

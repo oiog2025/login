@@ -1,4 +1,4 @@
-package com.co.oscar.login.infrastructure.entrypoints.dtos;
+package com.co.oscar.login.infrastructure.entrypoints.dtos.user;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
 import java.time.LocalDateTime;
 
 @Schema(description = "DTO que representa la información de transferencia para un Usuario")

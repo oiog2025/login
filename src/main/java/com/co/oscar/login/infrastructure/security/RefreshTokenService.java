@@ -2,15 +2,14 @@ package com.co.oscar.login.infrastructure.security;
 
 import com.co.oscar.login.application.ports.output.RefreshTokenOutPort;
 import com.co.oscar.login.domain.exceptions.UserException;
-import com.co.oscar.login.infrastructure.persistence.jpa.RefreshTokenEntity;
-import com.co.oscar.login.infrastructure.persistence.jpa.RefreshTokenRepository;
+import com.co.oscar.login.infrastructure.persistence.jpa.refreshtoken.RefreshTokenEntity;
+import com.co.oscar.login.infrastructure.persistence.jpa.refreshtoken.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.time.Instant;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor

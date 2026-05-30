@@ -1,13 +1,12 @@
-package com.co.oscar.login.infrastructure.persistence.jpa;
+package com.co.oscar.login.infrastructure.persistence.jpa.User;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
-import lombok.*;
-
 import java.time.LocalDateTime;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor

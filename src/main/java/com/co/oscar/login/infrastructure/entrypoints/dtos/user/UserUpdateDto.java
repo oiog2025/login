@@ -1,11 +1,10 @@
-package com.co.oscar.login.infrastructure.entrypoints.dtos;
+package com.co.oscar.login.infrastructure.entrypoints.dtos.user;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
 import java.time.LocalDateTime;
 
 @Schema(description = "DTO para la actualización de la información de un Usuario")

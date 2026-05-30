@@ -5,6 +5,11 @@ import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.domain.User;
 import com.co.oscar.login.domain.exceptions.UserNotFoundException;
 import com.co.oscar.login.infrastructure.entrypoints.dtos.*;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.login.RefreshTokenRequestDTO;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.login.TokenResponseDTO;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserDto;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserRequestDTO;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserUpdateDto;
 import com.co.oscar.login.infrastructure.mapper.UserMapper;
 import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,15 +19,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")

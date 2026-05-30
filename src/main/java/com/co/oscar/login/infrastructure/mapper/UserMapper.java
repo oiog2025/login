@@ -2,14 +2,12 @@ package com.co.oscar.login.infrastructure.mapper;
 
 
 import com.co.oscar.login.domain.User;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.UserDto;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.UserUpdateDto;
-import com.co.oscar.login.infrastructure.persistence.jpa.UserEntity;
-import jakarta.validation.Valid;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserDto;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserUpdateDto;
+import com.co.oscar.login.infrastructure.persistence.jpa.User.UserEntity;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {

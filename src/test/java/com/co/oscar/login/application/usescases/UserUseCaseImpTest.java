@@ -1,12 +1,20 @@
 package com.co.oscar.login.application.usescases;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+
 import com.co.oscar.login.application.ports.output.EncryptedServicePort;
 import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.application.ports.output.UserOutPort;
 import com.co.oscar.login.domain.User;
 import com.co.oscar.login.domain.exceptions.UserAlreadyExistsException;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.login.LoginResponseDTO;
 import com.co.oscar.login.infrastructure.security.RefreshTokenService;
+import java.time.LocalDateTime;
+import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,15 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Inicializa los mocks de Mockito automáticamente
 @DisplayName("Pruebas Unitarias para UserUseCaseImp")

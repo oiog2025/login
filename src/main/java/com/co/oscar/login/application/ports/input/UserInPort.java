@@ -1,8 +1,7 @@
 package com.co.oscar.login.application.ports.input;
 
 import com.co.oscar.login.domain.User;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
-
+import com.co.oscar.login.infrastructure.entrypoints.dtos.login.LoginResponseDTO;
 import java.util.List;
 import java.util.Optional;
 

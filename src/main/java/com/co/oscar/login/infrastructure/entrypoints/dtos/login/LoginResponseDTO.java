@@ -1,4 +1,4 @@
-package com.co.oscar.login.infrastructure.entrypoints.dtos;
+package com.co.oscar.login.infrastructure.entrypoints.dtos.login;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @Data
 public class LoginResponseDTO {
-    private String accessToken;
-    private String refreshToken;
+  private String accessToken;
+  private String refreshToken;
 }

@@ -1,13 +1,22 @@
 package com.co.oscar.login.infrastructure.entrypoints.controllers;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.co.oscar.login.application.ports.input.UserInPort;
 import com.co.oscar.login.application.ports.output.TokenServicePort;
 import com.co.oscar.login.domain.User;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.LoginResponseDTO;
-import com.co.oscar.login.infrastructure.entrypoints.dtos.UserDto;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.login.LoginResponseDTO;
+import com.co.oscar.login.infrastructure.entrypoints.dtos.user.UserDto;
 import com.co.oscar.login.infrastructure.mapper.UserMapper;
 import com.co.oscar.login.infrastructure.security.RefreshTokenService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -18,16 +27,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 // Importaciones estáticas para mantener el código limpio y legible
 
